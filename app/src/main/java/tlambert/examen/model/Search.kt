@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.io.Serializable
-import java.time.LocalDateTime
+import java.util.*
 
 
 @Entity(
@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 
 data class Search (@PrimaryKey(autoGenerate = true) var id:Long? = null,
                       var text:String,
-                      var date:LocalDateTime):Serializable
+                      var date:Date):Serializable
 {
 
     override fun equals(other: Any?): Boolean {
