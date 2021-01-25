@@ -11,11 +11,13 @@ import java.io.Serializable
 )
 
 data class Company (@PrimaryKey(autoGenerate = true) var id:Long? = null,
-                   var libelle:String): Serializable {
+                    var libelle:String,
+                    var cp:String,
+                    var siret:String): Serializable {
 
 
     override fun toString(): String {
-        return "$libelle"
+        return "$libelle ($cp)"
     }
 
     override fun equals(other: Any?): Boolean {
@@ -26,6 +28,7 @@ data class Company (@PrimaryKey(autoGenerate = true) var id:Long? = null,
 
         if (id != other.id) return false
         if (libelle != other.libelle) return false
+        if (cp != other.cp) return false
 
         return true
     }
@@ -33,6 +36,9 @@ data class Company (@PrimaryKey(autoGenerate = true) var id:Long? = null,
     override fun hashCode(): Int {
         var result = id?.hashCode() ?: 0
         result = 31 * result + libelle.hashCode()
+        result = 31 * result + cp.hashCode()
         return result
     }
+
+
 }

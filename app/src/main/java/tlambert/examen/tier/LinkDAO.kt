@@ -7,7 +7,7 @@ import tlambert.examen.model.Link
 interface LinkDAO {
 
     @Query("SELECT * FROM Link")
-    fun getLink(): Link
+    fun getLink(): List<Link>
 
     @Query("SELECT COUNT(*) FROM Link")
     fun count(): Int

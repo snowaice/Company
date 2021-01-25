@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.io.Serializable
+import java.text.SimpleDateFormat
 import java.util.*
 
 
@@ -11,9 +12,11 @@ import java.util.*
     indices = [Index(value = ["id"],unique = true)]
 )
 
-data class Search (@PrimaryKey(autoGenerate = true) var id:Long? = null,
-                      var text:String,
-                      var date:Date):Serializable
+data class Search(@PrimaryKey(autoGenerate = true) var id:Long? = null,
+                  var text:String,
+                  var date: String? = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
+                  var cp:String,
+                  var dep:String):Serializable
 {
 
     override fun equals(other: Any?): Boolean {
