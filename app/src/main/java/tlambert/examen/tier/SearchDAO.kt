@@ -15,6 +15,10 @@ interface SearchDAO {
     @Query("SELECT count(*) FROM search WHERE search.date=:date AND search.text=:mot and search.dep=:dep")
     fun counteDEP(date: String, mot: String,dep:String): Int
 
+    @Query("SELECT company.* FROM company,link WHERE company.id = link.company and link.search =:id")
+    fun getSearchID(id: Long): List<Company>
+
+
 
     @Query("SELECT * FROM Search")
     fun getSearch(): List<Search>

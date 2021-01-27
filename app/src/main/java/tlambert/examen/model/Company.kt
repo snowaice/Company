@@ -13,7 +13,11 @@ import java.io.Serializable
 data class Company (@PrimaryKey(autoGenerate = true) var id:Long? = null,
                     var libelle:String,
                     var cp:String,
-                    var siret:String): Serializable {
+                    var siret:String,
+                    var region:String,
+                    var activite:String,
+                    var latitude:String,
+                    var longitude:String): Serializable {
 
 
     override fun toString(): String {

@@ -6,7 +6,7 @@ import tlambert.examen.model.Company
 @Dao
 interface CompanyDAO {
     @Query("SELECT company.* FROM company,search,link WHERE link.company=company.id AND link.search = search.id AND search.date=:date AND search.text=:mot")
-    fun getEntrepriseByRecherche(date: String, mot: String): List<Company>
+    fun getCompanyDate(date: String, mot: String): List<Company>
 
     @Query("SELECT company.* FROM company,search,link WHERE link.company=company.id AND link.search = search.id AND search.date=:date AND search.text=:mot and search.cp=:cp")
     fun getCP(date: String, mot: String,cp:String): List<Company>
@@ -19,8 +19,7 @@ interface CompanyDAO {
     fun getAllCompany(): List<Company>
 
     @Query("SELECT * FROM Company WHERE siret =:siret ORDER BY id")
-    fun getBySiret(siret:String): Company?
-
+    fun getSiret(siret:String): Company?
 
     @Query("SELECT * FROM Company Where id=:id")
     fun getCompany(id:Long): Company
