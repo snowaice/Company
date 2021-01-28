@@ -2,7 +2,6 @@ package tlambert.examen
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.TextView
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -17,15 +16,21 @@ class CompanyActivity : AppCompatActivity() {
         setContentView(R.layout.activity_company)
 
         var company = intent.getSerializableExtra("company") as Company
-        TV_id.text = company.id.toString()
         TV_Libelle.text = company.libelle
+        TV_siret.text = "Siret : "+company.siret
+        TV_acti.text = "Activité : "+company.activite
+        TV_acti1.text = "code NAF : "+company.activite_principale
+        TV_region.text = "Région : "+company.region
+        TV_cp.text = "Code Postal : "+company.cp
+
 
         var mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(OnMapReadyCallback {
             var googleMap = it
-            val loc1 = LatLng(company.latitude!!.toDouble(), company.longitude!!.toDouble())
-            googleMap.addMarker(MarkerOptions().position(loc1).title(company.libelle).visible(true))
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(loc1,14f))
+            val loc = LatLng(company.latitude!!.toDouble(), company.longitude!!.toDouble())
+            googleMap.addMarker(MarkerOptions().position(loc).title(company.libelle).visible(true))
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(loc,14f))
         })
+
     }
 }

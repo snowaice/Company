@@ -16,7 +16,8 @@ data class Search(@PrimaryKey(autoGenerate = true) var id:Long? = null,
                   var text:String,
                   var date: String? = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
                   var cp:String,
-                  var dep:String):Serializable
+                  var dep:String,
+                  var codeNAF:String):Serializable
 {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -29,6 +30,7 @@ data class Search(@PrimaryKey(autoGenerate = true) var id:Long? = null,
         if (date != other.date) return false
         if (cp != other.cp) return false
         if (dep != other.dep) return false
+        if (codeNAF != other.codeNAF) return false
 
         return true
     }
@@ -39,21 +41,12 @@ data class Search(@PrimaryKey(autoGenerate = true) var id:Long? = null,
         result = 31 * result + (date?.hashCode() ?: 0)
         result = 31 * result + cp.hashCode()
         result = 31 * result + dep.hashCode()
+        result = 31 * result + codeNAF.hashCode()
         return result
     }
 
     override fun toString(): String {
-        var Str = ""
-        if(cp != ""){
-            Str =  "Recherche : '$text' ($cp) effectué le : $date"
-        }
-        if(dep != ""){
-            Str = "Recherche : '$text' ($dep) effectué le : $date"
-        }
-        if(dep == "" && cp == ""){
-            Str = "Recherche : '$text' effectué le : $date"
-        }
-       return Str
+        return "Recherche :'$text' le $date $cp $dep $codeNAF"
     }
 
 }

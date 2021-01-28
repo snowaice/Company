@@ -15,6 +15,7 @@ data class Company (@PrimaryKey(autoGenerate = true) var id:Long? = null,
                     var cp:String,
                     var siret:String,
                     var region:String,
+                    var activite_principale:String,
                     var activite:String,
                     var latitude:String,
                     var longitude:String): Serializable {

@@ -12,9 +12,12 @@ import java.util.*
 import javax.net.ssl.HttpsURLConnection
 
 class CompanyService(companyDAO:CompanyDAO,searchDAO:SearchDAO,linkDAO:LinkDAO,text:String) {
-    private val apiUrl = "https://entreprise.data.gouv.fr/api/sirene/v1/full_text/%s"
-    private val apiUrlCP = "https://entreprise.data.gouv.fr/api/sirene/v1/full_text/%s?code_postal=%s"
-    private val apiUrlDEP = "https://entreprise.data.gouv.fr/api/sirene/v1/full_text/%s?departement=%s"
+    private val apiUrl = "https://entreprise.data.gouv.fr/api/sirene/v1/full_text/%s?per_page=100"
+    private val apiUrlCP = "https://entreprise.data.gouv.fr/api/sirene/v1/full_text/%s?code_postal=%s&per_page=100"
+    private val apiUrlDEP = "https://entreprise.data.gouv.fr/api/sirene/v1/full_text/%s?departement=%s&per_page=100"
+
+    private val apiUrlCodeNAF = "https://entreprise.data.gouv.fr/api/sirene/v1/full_text/%s?activite_principale=%s&per_page=100"
+
 
     val companyDAO = companyDAO
     val searrchDAO = searchDAO
@@ -22,11 +25,10 @@ class CompanyService(companyDAO:CompanyDAO,searchDAO:SearchDAO,linkDAO:LinkDAO,t
 
     //ADD SEARCH
     val searchText = text
-    val search = Search(null,searchText, SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) ,"","")
+    val search = Search(null,searchText, SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) ,"","","")
 
 
-
-    fun getCompany(query:String,dep:String, cp:String):List<Company>{
+    fun getCompany(query:String,dep:String, cp:String,codeNAF:String):List<Company>{
 
         var conn: HttpsURLConnection? = null
 
@@ -50,6 +52,12 @@ class CompanyService(companyDAO:CompanyDAO,searchDAO:SearchDAO,linkDAO:LinkDAO,t
                  url = URL(String.format(apiUrl,query))
             }
 
+            if(codeNAF != ""){
+                search.codeNAF = codeNAF
+                idSearch = searrchDAO.insert(search)
+                url = URL(String.format(apiUrlCodeNAF,query,codeNAF))
+            }
+
             if (url != null) {
                 conn = url.openConnection() as HttpsURLConnection
             }
@@ -67,7 +75,7 @@ class CompanyService(companyDAO:CompanyDAO,searchDAO:SearchDAO,linkDAO:LinkDAO,t
             val inputStream = conn?.inputStream ?: return list
             val reader = JsonReader(inputStream.bufferedReader())
 
-            var company = Company(null,"","","","","","","")
+            var company = Company(null,"","","","","","","","")
 
             reader.beginObject()
             while (reader.hasNext()){
@@ -78,7 +86,6 @@ class CompanyService(companyDAO:CompanyDAO,searchDAO:SearchDAO,linkDAO:LinkDAO,t
                         reader.beginObject()
                         while (reader.hasNext()){
                             when(reader.nextName()){
-
 
                                 "nom_raison_sociale" ->{ if (reader.peek() == JsonToken.NULL)  {
                                         company.libelle = reader.nextString()
@@ -128,6 +135,14 @@ class CompanyService(companyDAO:CompanyDAO,searchDAO:SearchDAO,linkDAO:LinkDAO,t
                                         company.longitude = reader.nextString()
                                     }
                                 }
+                                "activite_principale" -> {
+                                    if (reader.peek() == JsonToken.NULL)  {
+                                        company.activite_principale = reader.nextNull().toString()
+                                    }else{
+                                        company.activite_principale = reader.nextString()
+                                    }
+                                }
+
 
                                 else->reader.skipValue()
                             }
@@ -135,14 +150,15 @@ class CompanyService(companyDAO:CompanyDAO,searchDAO:SearchDAO,linkDAO:LinkDAO,t
 
                         var companyGet = companyDAO.getSiret(company.siret)
 
-                        var idCompany :Long?=null
+                        var idCompany :Long
 
                         if(companyGet!=null){
-                            idCompany = companyGet.id
+                            idCompany = companyGet.id!!
 
                             companyGet.libelle= company.libelle
                             companyGet.activite = company.activite
                             companyGet.cp = company.cp
+                            companyGet.activite_principale = company.activite_principale
                             companyGet.latitude = company.latitude
                             companyGet.longitude = company.longitude
                             companyGet.region = company.region
@@ -158,7 +174,7 @@ class CompanyService(companyDAO:CompanyDAO,searchDAO:SearchDAO,linkDAO:LinkDAO,t
 
                         list.add(company)
 
-                        company = Company(null,"","","","","","","")
+                        company = Company(null,"","","","","","","","")
 
 
                         reader.endObject()

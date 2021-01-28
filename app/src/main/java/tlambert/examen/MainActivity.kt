@@ -1,5 +1,6 @@
 package tlambert.examen
 
+
 import android.content.Intent
 import android.os.AsyncTask
 import android.os.Bundle
@@ -11,7 +12,8 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import tlambert.examen.model.Company
 import tlambert.examen.model.Search
-import tlambert.examen.tier.CompanyDAO
+import tlambert.examen.model.code_NAF_APE
+import tlambert.examen.tier.CodeNafDatabase
 import tlambert.examen.tier.CompanyDB
 import tlambert.examen.tier.CompanyService
 import java.text.SimpleDateFormat
@@ -37,45 +39,58 @@ class MainActivity : AppCompatActivity() {
             val linkDAO = db.linkDAO()
             val dateNow = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
             val text = SearchBar.text.toString()
-
-
-            if(Departement.text.toString().isNotBlank() || codePostal.text.toString().isNotBlank()){
-                if(Departement.text.toString().isNotBlank()){
-                    println("""testdep ${searchDAO.counteDEP(dateNow, text, codePostal.text.toString())}""")
-                    ListCompany = if(searchDAO.counteDEP(dateNow, text, Departement.text.toString()) != 0){
-                        println("ok3")
-                        companyDAO.getDEP(dateNow, text, Departement.text.toString())
+            var naf: code_NAF_APE? = null
+            if(spNAF.adapter != null){
+                 naf = spNAF.selectedItem as code_NAF_APE
+            }
+            if(naf != null){
+                if(naf.CodeNAFAPE.toString().isNotBlank()){
+                    ListCompany = if(searchDAO.countNAF(dateNow, text, codeNAFtext.text.toString()) != 0){
+                        companyDAO.getNAF(dateNow, text, naf.CodeNAFAPE.toString())
                     }else {
-                        println("ok4")
                         val companyService = CompanyService(companyDAO, searchDAO, linkDAO, SearchBar.text.toString())
-                        companyService.getCompany(text, Departement.text.toString(),"")
-                    }
-
-                }
-
-                if(codePostal.text.toString().isNotBlank()){
-                    println("""test ${searchDAO.counteCP(dateNow, text, codePostal.text.toString())}""")
-                    ListCompany = if(searchDAO.counteCP(dateNow, text, codePostal.text.toString()) != 0){
-                        println("ok")
-                        companyDAO.getCP(dateNow, text, codePostal.text.toString())
-                    }else {
-                        println("ok2")
-                        val companyService = CompanyService(companyDAO, searchDAO, linkDAO, SearchBar.text.toString())
-                        companyService.getCompany(text, "", codePostal.text.toString())
+                        companyService.getCompany(text, "", "",naf.CodeNAFAPE.toString())
                     }
 
                 }
             }
-            else{
-                ListCompany = if(searchDAO.countee(dateNow, text) != 0){
-                    companyDAO.getCompanyDate(dateNow, text)
+
+
+            if(Departement.text.toString().isNotBlank()){
+
+                ListCompany = if(searchDAO.counteDEP(dateNow, text, Departement.text.toString()) != 0){
+                    companyDAO.getDEP(dateNow, text, Departement.text.toString())
                 }else {
                     val companyService = CompanyService(companyDAO, searchDAO, linkDAO, SearchBar.text.toString())
-                    companyService.getCompany(text,"","")
+                    companyService.getCompany(text, Departement.text.toString(), "","")
                 }
+
             }
 
-            println("""List ${searchDAO.getSearch()}""")
+            if(codePostal.text.toString().isNotBlank()){
+
+                ListCompany = if(searchDAO.counteCP(dateNow, text, codePostal.text.toString()) != 0){
+                    companyDAO.getCP(dateNow, text, codePostal.text.toString())
+                }else {
+                    val companyService = CompanyService(companyDAO, searchDAO, linkDAO, SearchBar.text.toString())
+                    companyService.getCompany(text, "", codePostal.text.toString(),"")
+                }
+
+            }
+
+            if(Departement.text.toString().isBlank() && codePostal.text.toString().isBlank() && codeNAFtext.text.toString().isBlank() ){
+
+                ListCompany = if(searchDAO.countee(dateNow, text) != 0){
+                        companyDAO.getCompanyDate(dateNow, text)
+                    }else {
+                        val companyService = CompanyService(companyDAO, searchDAO, linkDAO, SearchBar.text.toString())
+
+                        companyService.getCompany(text,"","","")
+                    }
+            }
+
+            println("""List ${ListCompany}""")
+
 
             return true
 
@@ -99,38 +114,73 @@ class MainActivity : AppCompatActivity() {
                 if(codePostal.text.toString().isBlank() && Departement.text.toString().isBlank()){
                     TV_Titre.text = "Recherche de l'entreprise '${SearchBar.text}'"
                 }
-                SearchBar.setText("")
-                codePostal.setText("")
-                Departement.setText("")
+
+                val prefs = getPreferences(MODE_PRIVATE)
+                val editor = prefs.edit()
+
+                editor.putString("Company", SearchBar.text.toString())
+                editor.putString("CP", codePostal.text.toString())
+                editor.putString("DEP", Departement.text.toString())
+                editor.putString("NAF", codeNAFtext.text.toString())
+                editor.commit()
+
+                TV_Titre.visibility =  View.VISIBLE
             }
         }
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val prefs = getPreferences(MODE_PRIVATE)
+
+        val textSearch = prefs.getString("Company", "")
+        val CPSearch = prefs.getString("CP", "")
+        val DEPSearch = prefs.getString("DEP", "")
+        val NAFSearch = prefs.getString("NAF", "")
+
+        SearchBar.setText(textSearch)
+        codePostal.setText(CPSearch)
+        Departement.setText(DEPSearch)
+        codeNAFtext.setText(NAFSearch)
+
+
         //BUTTON SEARCH CLICK
         SearchButton.setOnClickListener {
             if(SearchBar.text.toString().isNotBlank()){
-                QueryCompany().execute()
 
+                    QueryCompany().execute()
             }
-
         }
 
+        if(codePostal.text.toString() != ""){
+            Departement.isEnabled = false
+        }
+        if(Departement.text.toString() != ""){
+            codePostal.isEnabled = false
+        }
+        if(TV_Titre.text.isBlank()){
+            TV_Titre.visibility =  View.GONE
+        }
 
         SearchAdvanced.setOnClickListener{
             codePostal.visibility=View.VISIBLE
             Departement.visibility=View.VISIBLE
+            codeNAFtext.visibility = View.VISIBLE
             SearchAdvancedUp.visibility=View.VISIBLE
+            spNAF.visibility=View.VISIBLE
             SearchAdvanced.visibility=View.GONE
+
         }
 
         SearchAdvancedUp.setOnClickListener{
             codePostal.visibility= View.GONE
             Departement.visibility=View.GONE
             SearchAdvancedUp.visibility=View.GONE
+            codeNAFtext.visibility = View.GONE
+            spNAF.visibility=View.GONE
             SearchAdvanced.visibility=View.VISIBLE
         }
 
@@ -150,30 +200,83 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+
+
         val db = CompanyDB.getDatabase(this@MainActivity)
         val searchDAO = db.searchDAO()
-        val companyDAO = db.companyDAO()
-        val linkDAO = db.linkDAO()
+
+        val dbNAF = CodeNafDatabase.getDatabase(this@MainActivity)
+        val codeNafDAO = dbNAF.CodeNafDAO()
+
+
+
+        codeNAFtext.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable) {}
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+
+                if(s.isBlank()){
+                    spNAF.adapter = null
+                }else{
+                    val text = "%${s}%"
+                    val listNAF = codeNafDAO.getNaf(text)
+
+                    val adapter = ArrayAdapter(this@MainActivity,
+                            android.R.layout.simple_expandable_list_item_1,
+                            listNAF)
+                    spNAF.adapter = adapter
+                }
+
+
+
+            }
+        })
+
+
+
+
+    val list =  searchDAO.getSearch()
+
+        for(search in list) {
+
+            val sdf = SimpleDateFormat("yyyy/MM/dd")
+            val c = Calendar.getInstance()
+            c.add(Calendar.MONTH,3)
+            val datePasse = c.time
+            val datePast = sdf.format(datePasse)
+            val date3Month= sdf.parse(datePast)
+
+
+            val date = SimpleDateFormat("yyyy-MM-dd").parse(search.date!!)
+            val dateTime = date!!.time
+            val datedSDF = sdf.format(dateTime)
+            val dateFromSearch = sdf.parse(datedSDF)
+
+            if( date3Month!! < dateFromSearch){
+                searchDAO.delete(search)
+            }
+
+        }
 
         History.setOnClickListener {
 
             SearchListView.adapter = null
             SearchListView.adapter = ArrayAdapter(
-                this@MainActivity,
-                android.R.layout.simple_spinner_dropdown_item,
-                searchDAO.getSearch()
+                    this@MainActivity,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    searchDAO.getSearch()
             )
             TV_Titre.text = "Historique"
+            TV_Titre.visibility = View.VISIBLE
         }
 
-        SearchListView.setOnItemClickListener {
-            _,_,position,_ ->  SearchListView.adapter.getItem(position)
+        SearchListView.setOnItemClickListener { _, _, position, _ ->  SearchListView.adapter.getItem(position)
 
             if(SearchListView.adapter.getItem(position) is Company){
 
-                var intent = Intent(this,CompanyActivity::class.java)
+                var intent = Intent(this, CompanyActivity::class.java)
 
-                intent.putExtra("company",SearchListView.adapter.getItem(position) as Company)
+                intent.putExtra("company", SearchListView.adapter.getItem(position) as Company)
 
                 startActivity(intent)
 
@@ -183,9 +286,9 @@ class MainActivity : AppCompatActivity() {
                 SearchListView.adapter = null
 
                 SearchListView.adapter = ArrayAdapter(
-                    this@MainActivity,
-                    android.R.layout.simple_spinner_dropdown_item,
-                    searchDAO.getSearchID(search.id!!)
+                        this@MainActivity,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        searchDAO.getSearchID(search.id!!)
                 )
 
                 if(search.cp != ""){
@@ -198,12 +301,10 @@ class MainActivity : AppCompatActivity() {
                     TV_Titre.text = "Recherche de l'entreprise '${search.text}'"
                 }
 
-
-
-
             }
 
         }
+
 
 }
 }
