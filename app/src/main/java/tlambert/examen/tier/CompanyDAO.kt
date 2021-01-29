@@ -11,7 +11,6 @@ interface CompanyDAO {
     @Query("SELECT company.* FROM company,search,link WHERE link.company=company.id AND link.search = search.id AND search.date=:date AND search.text=:mot and search.cp=:cp")
     fun getCP(date: String, mot: String,cp:String): List<Company>
 
-
     @Query("SELECT company.* FROM company,search,link WHERE link.company=company.id AND link.search = search.id AND search.date=:date AND search.text=:mot and search.dep=:dep")
     fun getDEP(date: String, mot: String,dep:String): List<Company>
 

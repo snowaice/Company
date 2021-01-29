@@ -15,6 +15,7 @@ class CompanyActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_company)
 
+        //Affichage des info entreprise
         var company = intent.getSerializableExtra("company") as Company
         TV_Libelle.text = company.libelle
         TV_siret.text = "Siret : "+company.siret
@@ -23,7 +24,7 @@ class CompanyActivity : AppCompatActivity() {
         TV_region.text = "Région : "+company.region
         TV_cp.text = "Code Postal : "+company.cp
 
-
+        //affichage map
         var mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(OnMapReadyCallback {
             var googleMap = it

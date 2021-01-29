@@ -47,16 +47,17 @@ class CompanyService(companyDAO:CompanyDAO,searchDAO:SearchDAO,linkDAO:LinkDAO,t
                 idSearch = searrchDAO.insert(search)
                 url = URL(String.format(apiUrlCP,query,cp))
             }
-            if(cp == "" && dep ==""){
-                 idSearch = searrchDAO.insert(search)
-                 url = URL(String.format(apiUrl,query))
-            }
-
             if(codeNAF != ""){
                 search.codeNAF = codeNAF
                 idSearch = searrchDAO.insert(search)
                 url = URL(String.format(apiUrlCodeNAF,query,codeNAF))
             }
+
+            if(cp == "" && dep =="" && codeNAF ==""){
+                 idSearch = searrchDAO.insert(search)
+                 url = URL(String.format(apiUrl,query))
+            }
+
 
             if (url != null) {
                 conn = url.openConnection() as HttpsURLConnection
